@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HH Goa 2026 — Frame & Builder ID Generator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌴</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=Baloo+2:wght@600;700;800&family=Noto+Sans+Devanagari:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
@@ -57,6 +58,20 @@
     display:flex; align-items:center; justify-content:space-between;
     padding:22px 24px 0; max-width:1180px; margin:0 auto;
   }
+  .btn-back{
+    display:inline-flex; align-items:center; gap:7px;
+    background:transparent; border:1.5px dashed rgba(241,198,59,0.5);
+    color:var(--mustard-soft); border-radius:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+    padding:7px 14px; cursor:pointer;
+    transition:border-color .2s, color .2s, background .2s;
+  }
+  .btn-back:hover{
+    border-color:var(--mustard); color:var(--mustard);
+    background:rgba(241,198,59,0.08);
+  }
+  .btn-back svg{ flex-shrink:0; }
   .logo{
     font-family:'Baloo 2', sans-serif; font-weight:800; color:var(--mustard);
     font-size:20px; line-height:1; display:flex; flex-direction:column; transform:rotate(-3deg);
@@ -239,9 +254,14 @@
 <div class="content">
 
   <div class="topbar">
-    <div class="logo">2<span class="blink">:</span>47<span style="font-size:12px;">PM</span><span class="small">STUDIO</span></div>
-     <div class="datepill">Goa, India · 28–31 Oct 2026</div>
-
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="btn-back" onclick="window.location.href='landing.html'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Home
+      </button>
+      <div class="logo">2<span class="blink">:</span>47<span style="font-size:12px;">PM</span><span class="small">STUDIO</span></div>
+    </div>
+    <div class="datepill">Goa, India · 28–31 Oct 2026</div>
   </div>
 
   <div class="marquee">
@@ -283,6 +303,10 @@
             <span class="t1" id="dropText">Tap or drop your photo here</span>
             <span class="t2">We'll fit it automatically — no manual crop needed</span>
           </label>
+          <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+            <label style="margin:0;">Zoom Photo</label>
+            <input type="range" id="zoomSlider" min="0.5" max="3" step="0.05" value="1" style="width:100%; margin:0;" title="Zoom image" />
+          </div>
         </div>
 
         <div class="panel tilt">
@@ -290,6 +314,14 @@
           <p class="hint">Custom label stamped onto your graphic.</p>
           <label>Sticker label</label>
           <input type="text" id="fSticker" placeholder="HACKER" maxlength="14" value="HACKER">
+        </div>
+        
+        <div class="panel tilt">
+          <h3>Name & Role</h3>
+          <label>Name</label>
+          <input type="text" id="fName2" placeholder="Your name" maxlength="30">
+          <label>Role</label>
+          <input type="text" id="fRole2" placeholder="Full Stack Developer" maxlength="30">
         </div>
 
         <div class="panel tilt" id="idFields" style="display:none;">
@@ -321,7 +353,7 @@
           <svg class="flank r" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg"><use href="#palmshape"/></svg>
           <div class="preview-stage">
             <canvas id="canvas" width="900" height="900"></canvas>
-          </div>
+            </div>
           <div class="actions">
             <button class="cta primary" id="btnDownload" disabled>Download image</button>
             <button class="cta secondary" id="btnShare" disabled>Share on X</button>
@@ -413,9 +445,29 @@ const THEMES = [
 let mode = 'pfp';
 let themeIdx = 0;
 let img = null;
+let imgScale = 1; // zoom factor for PFP image
+
+const DOODLES = ['⚡', '🌴', '🌺', '🥥', '💻', '✨', '🌊', '😎', '🎵', '🚀', '🔥', '🍹'];
+let doodleTick = 0;
+setInterval(() => {
+  doodleTick++;
+  if(typeof render === 'function') render();
+}, 350);
+
+let bgImg = new Image();
+bgImg.src = 'landing-bg.png';
+bgImg.onload = () => { if(typeof render === 'function') render(); };
 
 const canvas = document.getElementById('canvas');
 const ctx = canvas.getContext('2d');
+
+// Zoom slider listener
+const zoomSlider = document.getElementById('zoomSlider');
+zoomSlider.addEventListener('input', e => {
+  imgScale = parseFloat(e.target.value);
+  render();
+});
+
 const dropText = document.getElementById('dropText');
 const btnDownload = document.getElementById('btnDownload');
 const btnShare = document.getElementById('btnShare');
@@ -480,7 +532,7 @@ function loadFile(file){
 }
 
 // ---- live fields ----
-['fName','fHandle','fRole','fTitle','fSticker'].forEach(id=>{
+['fName','fHandle','fRole','fTitle','fSticker','fName2','fRole2'].forEach(id=>{
   const el = document.getElementById(id);
   if(el) el.addEventListener('input', render);
 });
@@ -549,6 +601,42 @@ function drawGoaSticker(c, cx, cy, scale, rotateDeg, t){
   c.fillText('गोवा', 0, 4*scale);
   c.restore();
 }
+
+function drawCanvasDoodle(c, cx, cy, size, t) {
+  const emoji = DOODLES[doodleTick % DOODLES.length];
+  // Pseudo-random wobble based on tick
+  const rot = ((doodleTick * 47) % 60) - 30; 
+  const scale = 1 + (((doodleTick * 13) % 20) / 100);
+  
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(rot * Math.PI / 180);
+  c.scale(scale, scale);
+  
+  c.shadowColor = 'rgba(0,0,0,0.2)';
+  c.shadowOffsetX = 4;
+  c.shadowOffsetY = 4;
+  
+  c.beginPath();
+  // Irregular circle for doodle feel
+  const rx = size * (1 + ((doodleTick%3)*0.05));
+  const ry = size * (1 - ((doodleTick%2)*0.05));
+  c.ellipse(0, 0, rx, ry, (doodleTick%4)*0.1, 0, Math.PI*2);
+  c.fillStyle = t.cream;
+  c.fill();
+  
+  c.shadowColor = 'transparent';
+  c.lineWidth = 3;
+  c.strokeStyle = t.bg2;
+  c.stroke();
+  
+  c.font = `${size*1.15}px sans-serif`;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillText(emoji, 0, size*0.1);
+  
+  c.restore();
+}
 function drawLabelSticker(c, cx, cy, text, scale, rotateDeg, t){
   if(!text) return;
   c.save();
@@ -574,10 +662,15 @@ function renderPFP(){
   const cx = W/2, cy = H/2;
   const outerR = W*0.5, photoR = W*0.40;
 
-  const grad = ctx.createLinearGradient(0,0,W,H);
-  grad.addColorStop(0, th.bg1); grad.addColorStop(1, th.bg2);
-  ctx.fillStyle = grad;
-  ctx.beginPath(); ctx.arc(cx,cy,outerR,0,Math.PI*2); ctx.fill();
+  // Draw tropical background image
+  if (bgImg.complete && bgImg.naturalWidth > 0) {
+    ctx.drawImage(bgImg, 0, 0, W, H);
+  } else {
+    const grad = ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0, th.bg1); grad.addColorStop(1, th.bg2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+  }
 
   // fine dot texture
   ctx.fillStyle = 'rgba(241,198,59,0.10)';
@@ -594,7 +687,7 @@ function renderPFP(){
 
   ctx.save();
   ctx.beginPath(); ctx.arc(cx,cy,photoR,0,Math.PI*2); ctx.closePath(); ctx.clip();
-  if(img) drawImageCover(ctx, img, cx-photoR, cy-photoR, photoR*2, photoR*2);
+  if(img) drawImageCover(ctx, img, cx - photoR * imgScale, cy - photoR * imgScale, photoR * 2 * imgScale, photoR * 2 * imgScale);
   else placeholderAvatar(ctx, cx, cy, photoR, th);
   ctx.restore();
 
@@ -607,6 +700,33 @@ function renderPFP(){
   drawGoaSticker(ctx, cx + outerR*0.72, cy - outerR*0.62, 0.85, -12, th);
   const stickerText = document.getElementById('fSticker').value;
   drawLabelSticker(ctx, cx - outerR*0.68, cy + outerR*0.68, stickerText, 0.95, -8, th);
+
+    // Name sticker (below) and Role text (above) rendering
+    const name2 = document.getElementById('fName2')?.value;
+    const role2 = document.getElementById('fRole2')?.value;
+      // Role sticker rendering at top-left of the circle
+      if (role2) {
+        const offsetX = outerR * 0.68;
+        const offsetY = outerR * 0.68;
+        drawLabelSticker(
+          ctx,
+          cx - offsetX,
+          cy - offsetY,
+          role2,
+          0.95,
+          0,
+          th
+        );
+      }
+    
+    // Draw dynamic doodle
+    drawCanvasDoodle(ctx, cx + outerR*0.6, cy - outerR*0.5, 36, th);
+    // Render name as sticker below the picture
+    if (name2) {
+      const baseY = photoR + 20;
+      drawLabelSticker(ctx, cx, cy + baseY, name2, 0.95, 0, th);
+    }
+
 }
 
 function renderID(){
@@ -614,10 +734,30 @@ function renderID(){
   const W = canvas.width, H = canvas.height;
   ctx.clearRect(0,0,W,H);
 
-  const g = ctx.createLinearGradient(0,0,W,H);
-  g.addColorStop(0, t.bg1); g.addColorStop(1, t.bg2);
   roundedRectPath(ctx, 0,0,W,H,36);
-  ctx.fillStyle = g; ctx.fill();
+  ctx.clip(); // clip everything to the rounded rect
+
+  // Draw tropical background image
+  if (bgImg.complete && bgImg.naturalWidth > 0) {
+    // Fill with image, scaled to cover the vertical format
+    const aspect = bgImg.naturalWidth / bgImg.naturalHeight;
+    const canvasAspect = W / H;
+    let drawW = W, drawH = H, dx = 0, dy = 0;
+    
+    if (canvasAspect > aspect) {
+      drawH = W / aspect;
+      dy = (H - drawH) / 2;
+    } else {
+      drawW = H * aspect;
+      dx = (W - drawW) / 2;
+    }
+    ctx.drawImage(bgImg, dx, dy, drawW, drawH);
+  } else {
+    const g = ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0, t.bg1); g.addColorStop(1, t.bg2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
 
   dashedRoundedRect(ctx, 26, 26, W-52, H-52, 30, 'rgba(232,33,140,0.6)', [2,8], 4);
   dashedRoundedRect(ctx, 40, 40, W-80, H-80, 24, t.mustard, [1,0], 6);
@@ -642,10 +782,13 @@ function renderID(){
   const stickerText = document.getElementById('fSticker').value;
   drawLabelSticker(ctx, 130, H-190, stickerText, 0.95, -8, t);
 
+  // Draw dynamic doodle on ID card
+  drawCanvasDoodle(ctx, W - 140, 230, 42, t);
+
   ctx.strokeStyle = 'rgba(251,243,217,0.25)'; ctx.setLineDash([5,6]); ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(90,332); ctx.lineTo(W-90,332); ctx.stroke(); ctx.setLineDash([]);
 
-  const avR = 148, avCx = W/2, avCy = 500;
+  const avR = 148, avCx = W/2, avCy = 470;
   ctx.save();
   ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,Math.PI*2); ctx.closePath(); ctx.clip();
   if(img) drawImageCover(ctx, img, avCx-avR, avCy-avR, avR*2, avR*2);
@@ -663,36 +806,26 @@ function renderID(){
 
   ctx.fillStyle = t.cream;
   ctx.font = `900 50px 'Fraunces', serif`;
-  ctx.fillText(name, W/2, 720);
+  ctx.fillText(name, W/2, 690);
 
   if(handle){
     ctx.fillStyle = t.pink;
     ctx.font = `600 20px 'IBM Plex Mono', monospace`;
-    ctx.fillText('@'+handle.replace('@',''), W/2, 756);
+    ctx.fillText('@'+handle.replace('@',''), W/2, 736);
   }
 
   ctx.font = `700 18px 'IBM Plex Mono', monospace`;
   const roleW = ctx.measureText(role).width + 48;
-  roundedRectPath(ctx, W/2 - roleW/2, 790, roleW, 46, 23);
+  roundedRectPath(ctx, W/2 - roleW/2, 770, roleW, 46, 23);
   ctx.fillStyle = 'rgba(241,198,59,0.12)'; ctx.fill();
   ctx.strokeStyle = t.mustard; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.fillStyle = t.mustard; ctx.fillText(role, W/2, 815);
+  ctx.fillStyle = t.mustard; ctx.fillText(role, W/2, 795);
 
   ctx.fillStyle = t.cream;
   ctx.globalAlpha = 0.9;
   ctx.font = `italic 600 23px 'Fraunces', serif`;
-  ctx.fillText('"' + title + '"', W/2, 888);
+  ctx.fillText('"' + title + '"', W/2, 870);
   ctx.globalAlpha = 1;
-
-  ctx.strokeStyle = 'rgba(251,243,217,0.25)'; ctx.setLineDash([5,6]);
-  ctx.beginPath(); ctx.moveTo(90, H-150); ctx.lineTo(W-90, H-150); ctx.stroke(); ctx.setLineDash([]);
-
-  ctx.fillStyle = t.mustard;
-  ctx.font = `700 17px 'IBM Plex Mono', monospace`;
-  ctx.fillText('BUILD · BEACH · BELONG', W/2, H-100);
-  ctx.fillStyle = t.pink;
-  ctx.font = `800 22px 'IBM Plex Mono', monospace`;
-  ctx.fillText('#FrameInGoa', W/2, H-62);
 }
 
 function render(){
@@ -709,14 +842,24 @@ btnDownload.addEventListener('click', ()=>{
     a.download = (mode==='pfp' ? 'hhgoa-pfp-frame' : 'hhgoa-builder-id') + '.png';
     a.click();
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    
+    // Trigger confetti!
+    if(typeof confetti === 'function') {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']
+      });
+    }
   }, 'image/png');
 });
 
 // ---- share ----
 btnShare.addEventListener('click', async ()=>{
   const caption = mode==='pfp'
-    ? "Framed in for Hacker House Goa 2026 🌴 #FrameInGoa"
-    : "Just built my Builder ID for Hacker House Goa 2026 🌴 #FrameInGoa";
+    ? "I'm heading to Hacker House Goa 2026! 🌴☀️ Just minted my official PFP frame.\n\nCan't wait to build, ship, and chill. Let's go! 🚀\n\n#FrameInGoa #HHGoa2026 @247pmstudio @TwoFourtySevenPM"
+    : "I'm heading to Hacker House Goa 2026! 🌴☀️ Just minted my official Builder ID.\n\nCan't wait to build, ship, and chill. Let's go! 🚀\n\n#FrameInGoa #HHGoa2026 @247pmstudio @TwoFourtySevenPM";
 
   canvas.toBlob(async blob=>{
     const file = new File([blob], 'hhgoa.png', {type:'image/png'});
@@ -730,9 +873,25 @@ btnShare.addEventListener('click', async ()=>{
     const a = document.createElement('a');
     a.href = url; a.download = 'hhgoa.png'; a.click();
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    
+    // Trigger confetti!
+    if(typeof confetti === 'function') {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']
+      });
+    }
+
     window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(caption), '_blank');
   }, 'image/png');
 });
+
+// Load confetti library
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+document.body.appendChild(script);
 
 </script>
 </body>

@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HH Goa 2026 — Frame & Builder ID Generator</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌴</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;0,9..144,900;1,9..144,600&family=Baloo+2:wght@600;700;800&family=Noto+Sans+Devanagari:wght@700;800;900&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+  :root{
+    --green:#1E5A34;
+    --green-2:#173F26;
+    --green-3:#0A2314;
+    --mustard:#F1C63B;
+    --mustard-soft:#F5D876;
+    --pink:#E8218C;
+    --pink-2:#FF63B0;
+    --cream:#FBF3D9;
+    --line:rgba(241,198,59,0.25);
+    --mx:50%; --my:50%;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  html,body{margin:0;padding:0;}
+
+  /* ---------- tiled tropical backdrop ---------- */
+  body{
+    color:var(--cream);
+    font-family:'IBM Plex Mono', monospace;
+    min-height:100vh;
+    padding:0 0 90px;
+    position:relative;
+    overflow-x:hidden;
+    background-color:var(--green-3);
+    background-image:
+      radial-gradient(1px 1px at 10px 10px, rgba(241,198,59,0.18) 1px, transparent 1.5px),
+      repeating-linear-gradient(115deg, rgba(30,90,52,0.9) 0 140px, rgba(23,63,38,0.9) 140px 280px);
+    background-size: 24px 24px, auto;
+  }
+  .palm-field{position:fixed; inset:0; z-index:0; overflow:hidden; pointer-events:none; opacity:0.55;}
+  .palm-field svg{position:absolute; animation:sway 7s ease-in-out infinite;}
+  @keyframes sway{ 0%,100%{transform:rotate(-2deg);} 50%{transform:rotate(2deg);} }
+
+  .bloom{position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(600px 400px at 8% 6%, rgba(241,198,59,0.10), transparent 60%),
+      radial-gradient(600px 420px at 96% 14%, rgba(232,33,140,0.14), transparent 55%),
+      radial-gradient(700px 500px at 50% 100%, rgba(255,99,176,0.10), transparent 60%);
+  }
+
+  .content{position:relative; z-index:2;}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- top bar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 24px 0; max-width:1180px; margin:0 auto;
+  }
+  .btn-back{
+    display:inline-flex; align-items:center; gap:7px;
+    background:transparent; border:1.5px dashed rgba(241,198,59,0.5);
+    color:var(--mustard-soft); border-radius:8px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px;
+    font-weight:600; letter-spacing:0.1em; text-transform:uppercase;
+    padding:7px 14px; cursor:pointer;
+    transition:border-color .2s, color .2s, background .2s;
+  }
+  .btn-back:hover{
+    border-color:var(--mustard); color:var(--mustard);
+    background:rgba(241,198,59,0.08);
+  }
+  .btn-back svg{ flex-shrink:0; }
+  .logo{
+    font-family:'Baloo 2', sans-serif; font-weight:800; color:var(--mustard);
+    font-size:20px; line-height:1; display:flex; flex-direction:column; transform:rotate(-3deg);
+  }
+  .logo .blink{animation:blink 1.4s steps(1) infinite;}
+  @keyframes blink{ 50%{opacity:0.25;} }
+  .logo span.small{font-size:11px; letter-spacing:0.1em; color:var(--cream); margin-top:1px;}
+  .datepill{
+    background:rgba(10,35,20,0.55); border:1.5px solid var(--mustard); border-radius:999px;
+    padding:9px 18px; font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--mustard-soft);
+    backdrop-filter:blur(6px);
+  }
+
+  /* ---------- marquee ---------- */
+  .marquee{
+    margin-top:26px; overflow:hidden; border-top:1.5px solid var(--line); border-bottom:1.5px solid var(--line);
+    background:rgba(10,35,20,0.4);
+  }
+  .marquee div{
+    display:inline-flex; white-space:nowrap; animation:scroll 22s linear infinite;
+    font-size:13px; letter-spacing:0.18em; text-transform:uppercase; padding:10px 0; color:var(--mustard);
+  }
+  .marquee div span{padding:0 22px; display:inline-flex; align-items:center; gap:10px;}
+  .marquee div span.pink{color:var(--pink-2);}
+  @keyframes scroll{ from{transform:translateX(0);} to{transform:translateX(-50%);} }
+
+  /* ---------- HERO (glass) ---------- */
+  .hero{padding:54px 24px 10px; max-width:1180px; margin:0 auto;}
+  .glass{
+    position:relative; border-radius:30px; padding:56px 60px; text-align:center; overflow:hidden;
+    background:rgba(14,46,27,0.42);
+    backdrop-filter:blur(22px) saturate(140%);
+    -webkit-backdrop-filter:blur(22px) saturate(140%);
+    border:1.5px solid rgba(241,198,59,0.35);
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  }
+  .glass::before{
+    content:""; position:absolute; inset:0; border-radius:30px; pointer-events:none;
+    background: radial-gradient(420px 260px at var(--mx) var(--my), rgba(255,255,255,0.14), transparent 60%);
+    transition:opacity .2s;
+  }
+  @media (max-width:760px){ .glass{padding:40px 24px;} }
+
+  .eyebrow{
+    font-size:12px; letter-spacing:0.16em; text-transform:uppercase;
+    color:var(--mustard-soft); margin-bottom:10px; position:relative;
+  }
+  .lockup{position:relative; display:inline-flex; align-items:center; gap:16px; flex-wrap:wrap; justify-content:center;}
+  .lockup h1{
+    font-family:'Fraunces', serif; font-weight:900; font-style:normal;
+    font-size:clamp(40px,7.4vw,84px); line-height:0.92; margin:0;
+    color:var(--mustard); letter-spacing:-0.01em;
+    text-shadow:0 6px 0 rgba(0,0,0,0.25);
+  }
+  .sticker{
+    display:inline-block; background:var(--pink); color:var(--mustard);
+    font-family:'Noto Sans Devanagari', sans-serif; font-weight:900;
+    font-size:clamp(22px,3.6vw,38px); padding:6px 18px 10px; border-radius:12px;
+    border:3px solid var(--mustard); transform:rotate(-6deg);
+    box-shadow:0 8px 0 rgba(0,0,0,0.2);
+    animation:wiggle 3.2s ease-in-out infinite;
+  }
+  @keyframes wiggle{ 0%,100%{transform:rotate(-6deg);} 50%{transform:rotate(-1deg) translateY(-3px);} }
+
+  .hero p.tag{
+    max-width:520px; margin:22px auto 0; color:var(--cream); opacity:0.9; line-height:1.6; font-size:14.5px; position:relative;
+  }
+
+  /* ---------- TABS (sliding pill) ---------- */
+  .tabs{
+    position:relative; display:inline-flex; margin:34px auto 0; padding:5px;
+    background:rgba(10,35,20,0.55); border:1.5px solid var(--line); border-radius:999px;
+  }
+  .tabwrap{display:flex; justify-content:center;}
+  .tab-highlight{
+    position:absolute; top:5px; bottom:5px; left:5px; width:calc(50% - 5px);
+    background:var(--mustard); border-radius:999px; transition:transform .35s cubic-bezier(.65,0,.35,1);
+    box-shadow:0 6px 18px rgba(241,198,59,0.35);
+  }
+  .tab{
+    position:relative; z-index:1; padding:12px 26px; border:none; background:transparent;
+    color:var(--cream); font-family:inherit; font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase;
+    cursor:pointer; font-weight:700; transition:color .25s; min-width:150px;
+  }
+  .tab.active{color:var(--green-3);}
+
+  /* ---------- STUDIO LAYOUT ---------- */
+  .studio{display:grid; grid-template-columns:1fr 1fr; gap:30px; align-items:start; margin-top:38px;}
+  @media (max-width:900px){ .studio{grid-template-columns:1fr;} }
+
+  .panel{
+    border:1.5px solid var(--line); border-radius:22px; padding:24px;
+    background:rgba(20,60,35,0.4); backdrop-filter:blur(10px);
+    transition:transform .25s ease, box-shadow .25s ease, border-color .25s ease;
+    transform-style:preserve-3d;
+  }
+  .panel:hover{border-color:var(--mustard); box-shadow:0 20px 50px rgba(0,0,0,0.35);}
+  .panel + .panel{margin-top:18px;}
+  .panel h3{
+    margin:0 0 4px; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:var(--pink-2);
+  }
+  .panel p.hint{margin:0 0 16px; font-size:12.5px; color:var(--mustard-soft);}
+
+  .drop{
+    display:block; border:2px dashed var(--line); border-radius:16px; padding:28px;
+    text-align:center; cursor:pointer; transition:.2s; position:relative; overflow:hidden;
+  }
+  .drop::after{
+    content:""; position:absolute; inset:0; opacity:0;
+    background:radial-gradient(300px 200px at 50% 0%, rgba(232,33,140,0.18), transparent 70%);
+    transition:opacity .25s;
+  }
+  .drop:hover{border-color:var(--pink-2); transform:translateY(-2px);}
+  .drop:hover::after{opacity:1;}
+  .drop.drag{border-color:var(--mustard); background:rgba(241,198,59,0.08);}
+  .drop input{display:none;}
+  .drop .icn{font-size:30px; margin-bottom:8px; display:block; animation:float 3s ease-in-out infinite;}
+  @keyframes float{ 0%,100%{transform:translateY(0);} 50%{transform:translateY(-6px);} }
+  .drop .t1{font-size:13.5px; color:var(--cream); position:relative;}
+  .drop .t2{font-size:11px; color:var(--mustard-soft); margin-top:4px; position:relative;}
+
+  label{display:block; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--mustard-soft); margin:14px 0 6px;}
+  label:first-of-type{margin-top:0;}
+  input[type=text]{
+    width:100%; background:rgba(251,243,217,0.06); border:1.5px solid var(--line); border-radius:10px;
+    padding:11px 12px; color:var(--cream); font-family:inherit; font-size:14px; outline:none; transition:.2s;
+  }
+  input[type=text]:focus{border-color:var(--pink-2); box-shadow:0 0 0 3px rgba(232,33,140,0.15);}
+  input[type=text]::placeholder{color:rgba(251,243,217,0.35);}
+
+  .themes{display:flex; gap:10px; flex-wrap:wrap;}
+  .swatch{
+    width:46px; height:46px; border-radius:12px; cursor:pointer; border:2px solid transparent;
+    position:relative; transition:.2s;
+  }
+  .swatch:hover{transform:translateY(-4px) scale(1.06);}
+  .swatch.active{border-color:var(--mustard); transform:translateY(-3px); box-shadow:0 8px 20px rgba(0,0,0,0.35);}
+
+  .preview-panel{position:relative;}
+  .preview-panel .flank{position:absolute; top:10%; width:70px; opacity:0.5; pointer-events:none; z-index:0;}
+  .preview-panel .flank.l{left:-6px; transform:scaleX(-1);}
+  .preview-panel .flank.r{right:-6px;}
+  .preview-stage{
+    display:flex; align-items:center; justify-content:center; padding:26px 10px; position:relative; z-index:1;
+    perspective:1000px;
+  }
+  canvas{
+    max-width:100%; height:auto; border-radius:16px;
+    box-shadow:0 25px 60px rgba(0,0,0,0.55);
+    transition:transform .35s cubic-bezier(.2,.8,.2,1);
+  }
+  .preview-stage:hover canvas{transform:scale(1.02) rotateX(1.5deg);}
+
+  .actions{display:flex; gap:10px; margin-top:18px; flex-wrap:wrap;}
+  button.cta{
+    flex:1; min-width:160px; padding:14px 16px; border-radius:12px; border:none; cursor:pointer;
+    font-family:inherit; font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase; font-weight:700;
+    transition:transform .15s, box-shadow .2s, background .2s; position:relative; overflow:hidden;
+  }
+  button.cta.primary{background:var(--mustard); color:var(--green-3);}
+  button.cta.primary:hover{background:var(--mustard-soft); transform:translateY(-2px); box-shadow:0 10px 24px rgba(241,198,59,0.35);}
+  button.cta.secondary{background:transparent; border:1.5px solid var(--line); color:var(--cream);}
+  button.cta.secondary:hover{border-color:var(--pink-2); color:var(--pink-2); transform:translateY(-2px); box-shadow:0 10px 24px rgba(232,33,140,0.25);}
+  button.cta:disabled{opacity:0.4; cursor:not-allowed; transform:none; box-shadow:none;}
+  button.cta .ripple{position:absolute; border-radius:50%; background:rgba(255,255,255,0.5); transform:scale(0); animation:rip .5s ease-out;}
+  @keyframes rip{ to{transform:scale(3); opacity:0;} }
+
+  .foot{
+    margin-top:48px; padding:22px 24px; border-top:1.5px solid var(--line); font-size:11px; color:var(--mustard-soft);
+    display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; max-width:1180px; margin-left:auto; margin-right:auto;
+  }
+  .tag2{color:var(--pink-2);}
+
+  /* ---------- RESPONSIVE TWEAKS ---------- */
+  @media (max-width: 640px) {
+    .topbar {
+      flex-direction: column;
+      gap: 12px;
+      align-items: center;
+      padding: 16px 16px 0;
+    }
+    .datepill {
+      font-size: 11px;
+      padding: 6px 12px;
+    }
+    .preview-panel .flank {
+      display: none;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .actions {
+      flex-direction: column;
+    }
+    button.cta {
+      width: 100%;
+      min-width: 0;
+    }
+    .tab {
+      min-width: 120px;
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+    .tabs {
+      margin-top: 24px;
+    }
+    .foot {
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      margin-top: 30px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="bloom"></div>
+<div class="palm-field" id="palmField"></div>
+
+<div class="content">
+
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <button class="btn-back" onclick="window.location.href='index.html'">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 2L4 7l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Home
+      </button>
+      <div class="logo">2<span class="blink">:</span>47<span style="font-size:12px;">PM</span><span class="small">STUDIO</span></div>
+    </div>
+    <div class="datepill">Goa, India · 28–31 Oct 2026</div>
+  </div>
+
+  <div class="marquee">
+    <div id="marqueeTrack">
+      <span>🌴 #FRAMEINGOA <span class="pink">·</span> BUILD · BEACH · BELONG <span class="pink">·</span> HH GOA 2026 <span class="pink">·</span></span>
+      <span>🌴 #FRAMEINGOA <span class="pink">·</span> BUILD · BEACH · BELONG <span class="pink">·</span> HH GOA 2026 <span class="pink">·</span></span>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="glass" id="glassHero">
+      <div class="eyebrow">A Frame In Goa production</div>
+      <div class="lockup">
+        <h1>HACKER HOUSE</h1>
+        <span class="sticker">गोवा</span>
+      </div>
+      <p class="tag">Upload a photo, get a branded Hacker House Goa 2026 profile frame or builder ID — ready to download and post with #FrameInGoa. No login, no wait.</p>
+
+      <div class="tabwrap">
+        <div class="tabs">
+          <div class="tab-highlight" id="tabHighlight"></div>
+          <button class="tab active" data-mode="pfp">PFP Frame</button>
+          <button class="tab" data-mode="id">Builder Pass</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="studio">
+      <!-- LEFT: controls -->
+      <div>
+        <div class="panel tilt">
+          <h3>Step 1 — Photo</h3>
+          <p class="hint">Any crop, any ratio. JPG, PNG, HEIC, WebP.</p>
+          <label class="drop" id="drop">
+            <input type="file" id="fileInput" accept="image/*">
+            <span class="icn">🌴</span>
+            <span class="t1" id="dropText">Tap or drop your photo here</span>
+            <span class="t2">We'll fit it automatically — no manual crop needed</span>
+          </label>
+          <div style="margin-top:20px; display:flex; flex-direction:column; gap:8px;">
+            <label style="margin:0;">Zoom Photo</label>
+            <input type="range" id="zoomSlider" min="0.5" max="3" step="0.05" value="1" style="width:100%; margin:0;" title="Zoom image" />
+          </div>
+        </div>
+
+        <div class="panel tilt">
+          <h3>Step 2 — Sticker</h3>
+          <p class="hint">Custom label stamped onto your graphic.</p>
+          <label>Sticker label</label>
+          <input type="text" id="fSticker" placeholder="HACKER" maxlength="14" value="HACKER">
+        </div>
+        
+        <div class="panel tilt">
+          <h3>Name & Role</h3>
+          <label>Name</label>
+          <input type="text" id="fName2" placeholder="Your name" maxlength="30">
+          <label>Role</label>
+          <input type="text" id="fRole2" placeholder="Full Stack Developer" maxlength="30">
+        </div>
+
+        <div class="panel tilt" id="idFields" style="display:none;">
+          <h3>Step 3 — Details</h3>
+          <p class="hint">Shown on your builder ID card.</p>
+          <label>Name</label>
+          <input type="text" id="fName" placeholder="Your name" maxlength="26">
+          <label>X handle (optional)</label>
+          <input type="text" id="fHandle" placeholder="yourhandle" maxlength="20">
+          <label>Stack / Role</label>
+          <input type="text" id="fRole" placeholder="Frontend Engineer" maxlength="26">
+          <label>Builder title</label>
+          <input type="text" id="fTitle" placeholder="Goa Growth Hacker" maxlength="30">
+        </div>
+
+        <div class="panel tilt" id="themePanel" style="display:none;">
+          <h3>Step 4 — Theme</h3>
+          <p class="hint">Three on-brand variants.</p>
+          <div class="themes" id="themes"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: preview -->
+      <div>
+        <div class="panel preview-panel tilt">
+          <h3>Preview</h3>
+          <p class="hint">Ready-to-share graphic, updates live.</p>
+          <svg class="flank l" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg"><use href="#palmshape"/></svg>
+          <svg class="flank r" viewBox="0 0 200 420" xmlns="http://www.w3.org/2000/svg"><use href="#palmshape"/></svg>
+          <div class="preview-stage">
+            <canvas id="canvas" width="900" height="900"></canvas>
+            </div>
+          <div class="actions">
+            <button class="cta primary" id="btnDownload" disabled>Download image</button>
+            <button class="cta secondary" id="btnShare" disabled>Share on X</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="foot">
+      <span>HackerHouse <span class="tag2">गोवा</span> · #FrameInGoa</span>
+      <span>28–31 Oct 2026</span>
+    </div>
+  </div>
+</div>
+
+<svg width="0" height="0" style="position:absolute;">
+  <defs>
+    <g id="palmshape">
+      <path d="M100 420 C 92 320 96 220 102 150" stroke="#F1C63B" stroke-width="7" fill="none" stroke-linecap="round"/>
+      <g fill="#1E5A34" stroke="#F1C63B" stroke-width="4">
+        <path d="M102 150 C 60 130 20 90 4 40 C 55 55 90 95 102 150 Z"/>
+        <path d="M102 150 C 150 122 195 78 208 26 C 158 46 118 90 102 150 Z"/>
+        <path d="M102 150 C 66 108 42 56 40 6 C 82 34 100 92 102 150 Z"/>
+        <path d="M102 150 C 138 104 168 48 176 -2 C 130 30 108 88 102 150 Z"/>
+        <path d="M102 150 C 84 96 78 40 92 -8 C 118 24 118 90 102 150 Z"/>
+      </g>
+    </g>
+  </defs>
+</svg>
+
+<script>
+// ---- scatter a field of background palms ----
+const field = document.getElementById('palmField');
+const positions = [
+  {t:'2%',l:'-3%',s:170,d:'0s'}, {t:'55%',l:'-4%',s:140,d:'1.2s'},
+  {t:'8%',l:'88%',s:190,d:'.6s'}, {t:'60%',l:'90%',s:150,d:'1.8s'},
+  {t:'85%',l:'6%',s:130,d:'2.3s'}, {t:'88%',l:'80%',s:160,d:'.3s'}
+];
+positions.forEach(p=>{
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 200 420');
+  svg.style.top = p.t; svg.style.left = p.l; svg.style.width = p.s+'px'; svg.style.animationDelay = p.d;
+  const use = document.createElementNS('http://www.w3.org/2000/svg','use');
+  use.setAttribute('href','#palmshape');
+  svg.appendChild(use);
+  field.appendChild(svg);
+});
+
+// ---- glass hero cursor spotlight ----
+const glassHero = document.getElementById('glassHero');
+glassHero.addEventListener('mousemove', e=>{
+  const r = glassHero.getBoundingClientRect();
+  glassHero.style.setProperty('--mx', ((e.clientX-r.left)/r.width*100)+'%');
+  glassHero.style.setProperty('--my', ((e.clientY-r.top)/r.height*100)+'%');
+});
+
+// ---- panel tilt ----
+document.querySelectorAll('.panel.tilt').forEach(p=>{
+  p.addEventListener('mousemove', e=>{
+    const r = p.getBoundingClientRect();
+    const x = (e.clientX - r.left)/r.width - 0.5;
+    const y = (e.clientY - r.top)/r.height - 0.5;
+    p.style.transform = `rotateY(${x*4}deg) rotateX(${-y*4}deg) translateY(-2px)`;
+  });
+  p.addEventListener('mouseleave', ()=>{ p.style.transform = ''; });
+});
+
+// ---- button ripple ----
+document.querySelectorAll('button.cta').forEach(btn=>{
+  btn.addEventListener('click', function(e){
+    const r = this.getBoundingClientRect();
+    const rip = document.createElement('span');
+    rip.className = 'ripple';
+    rip.style.left = (e.clientX-r.left-10)+'px';
+    rip.style.top = (e.clientY-r.top-10)+'px';
+    rip.style.width = rip.style.height = '20px';
+    this.appendChild(rip);
+    setTimeout(()=>rip.remove(), 500);
+  });
+});
+
+// Brand-true palette
+const THEMES = [
+  {name:'Jungle Canopy',   bg1:'#1E5A34', bg2:'#173F26', mustard:'#F1C63B', pink:'#E8218C', cream:'#FBF3D9'},
+  {name:'Midnight Monsoon',bg1:'#0F2A19', bg2:'#0A1C10', mustard:'#F1C63B', pink:'#E8218C', cream:'#FBF3D9'},
+  {name:'Sunset Festival', bg1:'#7A1450', bg2:'#3D0A28', mustard:'#F1C63B', pink:'#FF63B0', cream:'#FBF3D9'}
+];
+
+let mode = 'pfp';
+let themeIdx = 0;
+let img = null;
+let imgScale = 1; // zoom factor for PFP image
+
+const DOODLES = ['⚡', '🌴', '🌺', '🥥', '💻', '✨', '🌊', '😎', '🎵', '🚀', '🔥', '🍹'];
+let doodleTick = 0;
+setInterval(() => {
+  doodleTick++;
+  if(typeof render === 'function') render();
+}, 350);
+
+let bgImg = new Image();
+bgImg.src = 'landing-bg.png';
+bgImg.onload = () => { if(typeof render === 'function') render(); };
+
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+// Zoom slider listener
+const zoomSlider = document.getElementById('zoomSlider');
+zoomSlider.addEventListener('input', e => {
+  imgScale = parseFloat(e.target.value);
+  render();
+});
+
+const dropText = document.getElementById('dropText');
+const btnDownload = document.getElementById('btnDownload');
+const btnShare = document.getElementById('btnShare');
+const tabHighlight = document.getElementById('tabHighlight');
+
+// ---- tabs ----
+document.querySelectorAll('.tab').forEach((t,i)=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    mode = t.dataset.mode;
+    tabHighlight.style.transform = i===0 ? 'translateX(0)' : 'translateX(100%)';
+    document.getElementById('idFields').style.display = mode==='id' ? 'block' : 'none';
+    document.getElementById('themePanel').style.display = mode==='id' ? 'block' : 'none';
+    canvas.width = 900;
+    canvas.height = mode==='id' ? 1300 : 900;
+    render();
+  });
+});
+
+// ---- themes ----
+const themesEl = document.getElementById('themes');
+THEMES.forEach((t,i)=>{
+  const s = document.createElement('div');
+  s.className = 'swatch' + (i===0 ? ' active' : '');
+  s.style.background = `linear-gradient(135deg, ${t.bg1}, ${t.bg2} 55%, ${t.mustard})`;
+  s.title = t.name;
+  s.addEventListener('click', ()=>{
+    themeIdx = i;
+    document.querySelectorAll('.swatch').forEach(x=>x.classList.remove('active'));
+    s.classList.add('active');
+    render();
+  });
+  themesEl.appendChild(s);
+});
+
+// ---- upload ----
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.add('drag');}));
+['dragleave','drop'].forEach(ev=>drop.addEventListener(ev, e=>{e.preventDefault(); drop.classList.remove('drag');}));
+drop.addEventListener('drop', e=>{
+  if(e.dataTransfer.files && e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', e=>{
+  if(e.target.files && e.target.files[0]) loadFile(e.target.files[0]);
+});
+function loadFile(file){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const image = new Image();
+    image.onload = ()=>{
+      img = image;
+      dropText.textContent = '✓ Photo loaded — tap to replace';
+      btnDownload.disabled = false;
+      btnShare.disabled = false;
+      render();
+    };
+    image.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ---- live fields ----
+['fName','fHandle','fRole','fTitle','fSticker','fName2','fRole2'].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', render);
+});
+
+// ---- helpers ----
+function drawImageCover(c, image, x, y, w, h){
+  const ir = image.width / image.height, rr = w / h;
+  let sx, sy, sw, sh;
+  if(ir > rr){ sh = image.height; sw = sh * rr; sx = (image.width - sw)/2; sy = 0; }
+  else { sw = image.width; sh = sw / rr; sx = 0; sy = (image.height - sh)/2; }
+  c.drawImage(image, sx, sy, sw, sh, x, y, w, h);
+}
+function roundedRectPath(c, x, y, w, h, r){
+  c.beginPath();
+  c.moveTo(x+r,y);
+  c.arcTo(x+w,y,x+w,y+h,r);
+  c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r);
+  c.arcTo(x,y,x+w,y,r);
+  c.closePath();
+}
+function dashedRoundedRect(c, x, y, w, h, r, color, dash, lw){
+  roundedRectPath(c, x, y, w, h, r);
+  c.setLineDash(dash); c.lineWidth = lw; c.strokeStyle = color; c.stroke();
+  c.setLineDash([]);
+}
+function drawArcText(c, text, cx, cy, radius, startAngle, font, color, spacing){
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(startAngle);
+  c.font = font; c.fillStyle = color; c.textAlign='center'; c.textBaseline='middle';
+  for(let i=0;i<text.length;i++){
+    const ch = text[i];
+    const w = c.measureText(ch).width + spacing;
+    const ang = w / radius;
+    c.rotate(ang/2);
+    c.save();
+    c.translate(0, -radius);
+    c.fillText(ch, 0, 0);
+    c.restore();
+    c.rotate(ang/2);
+  }
+  c.restore();
+}
+function placeholderAvatar(c, cx, cy, r, t){
+  const g = c.createRadialGradient(cx, cy, r*0.1, cx, cy, r);
+  g.addColorStop(0, t.bg1); g.addColorStop(1, t.bg2);
+  c.fillStyle = g; c.beginPath(); c.arc(cx,cy,r,0,Math.PI*2); c.fill();
+  c.fillStyle = 'rgba(241,198,59,0.5)';
+  c.font = `${Math.round(r*0.6)}px 'IBM Plex Mono', monospace`;
+  c.textAlign='center'; c.textBaseline='middle';
+  c.fillText('🌴', cx, cy+2);
+}
+function drawGoaSticker(c, cx, cy, scale, rotateDeg, t){
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(rotateDeg * Math.PI/180);
+  const w = 132*scale, h = 74*scale, r = 14*scale;
+  c.lineWidth = 5*scale;
+  roundedRectPath(c, -w/2, -h/2, w, h, r);
+  c.fillStyle = t.pink; c.fill();
+  c.strokeStyle = t.mustard; c.stroke();
+  c.fillStyle = t.mustard;
+  c.font = `900 ${44*scale}px 'Noto Sans Devanagari', sans-serif`;
+  c.textAlign='center'; c.textBaseline='middle';
+  c.fillText('गोवा', 0, 4*scale);
+  c.restore();
+}
+
+function drawCanvasDoodle(c, cx, cy, size, t) {
+  const emoji = DOODLES[doodleTick % DOODLES.length];
+  // Pseudo-random wobble based on tick
+  const rot = ((doodleTick * 47) % 60) - 30; 
+  const scale = 1 + (((doodleTick * 13) % 20) / 100);
+  
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(rot * Math.PI / 180);
+  c.scale(scale, scale);
+  
+  c.shadowColor = 'rgba(0,0,0,0.2)';
+  c.shadowOffsetX = 4;
+  c.shadowOffsetY = 4;
+  
+  c.beginPath();
+  // Irregular circle for doodle feel
+  const rx = size * (1 + ((doodleTick%3)*0.05));
+  const ry = size * (1 - ((doodleTick%2)*0.05));
+  c.ellipse(0, 0, rx, ry, (doodleTick%4)*0.1, 0, Math.PI*2);
+  c.fillStyle = t.cream;
+  c.fill();
+  
+  c.shadowColor = 'transparent';
+  c.lineWidth = 3;
+  c.strokeStyle = t.bg2;
+  c.stroke();
+  
+  c.font = `${size*1.15}px sans-serif`;
+  c.textAlign = 'center';
+  c.textBaseline = 'middle';
+  c.fillText(emoji, 0, size*0.1);
+  
+  c.restore();
+}
+function drawLabelSticker(c, cx, cy, text, scale, rotateDeg, t){
+  if(!text) return;
+  c.save();
+  c.translate(cx, cy);
+  c.rotate(rotateDeg * Math.PI/180);
+  c.font = `800 ${26*scale}px 'Baloo 2', sans-serif`;
+  const w = c.measureText(text.toUpperCase()).width + 40*scale, h = 50*scale, r = 12*scale;
+  c.lineWidth = 4*scale;
+  roundedRectPath(c, -w/2, -h/2, w, h, r);
+  c.fillStyle = t.pink; c.fill();
+  c.strokeStyle = t.mustard; c.stroke();
+  c.fillStyle = t.mustard;
+  c.textAlign='center'; c.textBaseline='middle';
+  c.fillText(text.toUpperCase(), 0, 3*scale);
+  c.restore();
+}
+
+// ---- renderers ----
+function renderPFP(){
+  const th = THEMES[0];
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+  const cx = W/2, cy = H/2;
+  const outerR = W*0.5, photoR = W*0.40;
+
+  // Draw tropical background image
+  if (bgImg.complete && bgImg.naturalWidth > 0) {
+    ctx.drawImage(bgImg, 0, 0, W, H);
+  } else {
+    const grad = ctx.createLinearGradient(0,0,W,H);
+    grad.addColorStop(0, th.bg1); grad.addColorStop(1, th.bg2);
+    ctx.fillStyle = grad;
+    ctx.fillRect(0,0,W,H);
+  }
+
+  // fine dot texture
+  ctx.fillStyle = 'rgba(241,198,59,0.10)';
+  for(let a=0;a<Math.PI*2;a+=0.045){
+    const rr = outerR*0.94;
+    ctx.beginPath(); ctx.arc(cx+Math.cos(a)*rr, cy+Math.sin(a)*rr, 1.4, 0, Math.PI*2); ctx.fill();
+  }
+
+  ctx.beginPath(); ctx.arc(cx,cy,outerR-10,0,Math.PI*2);
+  ctx.setLineDash([3,7]); ctx.lineWidth=4; ctx.strokeStyle=th.mustard; ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(cx,cy,outerR-20,0,Math.PI*2);
+  ctx.lineWidth=2; ctx.strokeStyle='rgba(251,243,217,0.35)'; ctx.stroke();
+
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,photoR,0,Math.PI*2); ctx.closePath(); ctx.clip();
+  if(img) drawImageCover(ctx, img, cx - photoR * imgScale, cy - photoR * imgScale, photoR * 2 * imgScale, photoR * 2 * imgScale);
+  else placeholderAvatar(ctx, cx, cy, photoR, th);
+  ctx.restore();
+
+  ctx.strokeStyle = th.pink; ctx.lineWidth = 10;
+  ctx.beginPath(); ctx.arc(cx,cy,photoR+2,0,Math.PI*2); ctx.stroke();
+
+  drawArcText(ctx, 'HACKER HOUSE · ', cx, cy, outerR*0.86, -Math.PI/2 - 0.75, `700 27px 'IBM Plex Mono', monospace`, th.mustard, 6);
+  drawArcText(ctx, ' 28–31 OCT 2026 · #FRAMEINGOA', cx, cy, outerR*0.86, Math.PI/2 - 1.55, `700 24px 'IBM Plex Mono', monospace`, th.cream, 6);
+
+  drawGoaSticker(ctx, cx + outerR*0.72, cy - outerR*0.62, 0.85, -12, th);
+  const stickerText = document.getElementById('fSticker').value;
+  drawLabelSticker(ctx, cx - outerR*0.68, cy + outerR*0.68, stickerText, 0.95, -8, th);
+
+  // Name sticker (below) and Role text (above) rendering
+  const name2 = document.getElementById('fName2')?.value;
+  const role2 = document.getElementById('fRole2')?.value;
+  // Role sticker rendering at top-left of the circle
+  if (role2) {
+    const offsetX = outerR * 0.68;
+    const offsetY = outerR * 0.68;
+    drawLabelSticker(
+      ctx,
+      cx - offsetX,
+      cy - offsetY,
+      role2,
+      0.95,
+      0,
+      th
+    );
+  }
+    
+  // Draw dynamic doodle
+  drawCanvasDoodle(ctx, cx + outerR*0.6, cy - outerR*0.5, 36, th);
+  // Render name as sticker below the picture
+  if (name2) {
+    const baseY = photoR + 20;
+    drawLabelSticker(ctx, cx, cy + baseY, name2, 0.95, 0, th);
+  }
+}
+
+function renderID(){
+  const t = THEMES[themeIdx];
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  roundedRectPath(ctx, 0,0,W,H,36);
+  ctx.clip(); // clip everything to the rounded rect
+
+  // Draw tropical background image
+  if (bgImg.complete && bgImg.naturalWidth > 0) {
+    // Fill with image, scaled to cover the vertical format
+    const aspect = bgImg.naturalWidth / bgImg.naturalHeight;
+    const canvasAspect = W / H;
+    let drawW = W, drawH = H, dx = 0, dy = 0;
+    
+    if (canvasAspect > aspect) {
+      drawH = W / aspect;
+      dy = (H - drawH) / 2;
+    } else {
+      drawW = H * aspect;
+      dx = (W - drawW) / 2;
+    }
+    ctx.drawImage(bgImg, dx, dy, drawW, drawH);
+  } else {
+    const g = ctx.createLinearGradient(0,0,W,H);
+    g.addColorStop(0, t.bg1); g.addColorStop(1, t.bg2);
+    ctx.fillStyle = g;
+    ctx.fill();
+  }
+
+  dashedRoundedRect(ctx, 26, 26, W-52, H-52, 30, 'rgba(232,33,140,0.6)', [2,8], 4);
+  dashedRoundedRect(ctx, 40, 40, W-80, H-80, 24, t.mustard, [1,0], 6);
+
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.beginPath(); ctx.ellipse(W/2, 84, 46, 16, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = t.mustard; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.ellipse(W/2, 84, 46, 16, 0, 0, Math.PI*2); ctx.stroke();
+
+  ctx.fillStyle = t.mustard;
+  ctx.font = `900 46px 'Fraunces', serif`;
+  ctx.textAlign = 'center';
+  ctx.fillText('HACKER HOUSE', W/2, 190);
+  ctx.font = `500 15px 'IBM Plex Mono', monospace`;
+  ctx.fillStyle = t.cream;
+  ctx.globalAlpha = 0.85;
+  ctx.fillText('GOA, INDIA · 28–31 OCT 2026', W/2, 224);
+  ctx.globalAlpha = 1;
+
+  drawGoaSticker(ctx, W/2, 258, 1, -5, t);
+
+  const stickerText = document.getElementById('fSticker').value;
+  drawLabelSticker(ctx, 130, H-190, stickerText, 0.95, -8, t);
+
+  // Draw dynamic doodle on ID card
+  drawCanvasDoodle(ctx, W - 140, 230, 42, t);
+
+  ctx.strokeStyle = 'rgba(251,243,217,0.25)'; ctx.setLineDash([5,6]); ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(90,332); ctx.lineTo(W-90,332); ctx.stroke(); ctx.setLineDash([]);
+
+  const avR = 148, avCx = W/2, avCy = 470;
+  ctx.save();
+  ctx.beginPath(); ctx.arc(avCx,avCy,avR,0,Math.PI*2); ctx.closePath(); ctx.clip();
+  if(img) drawImageCover(ctx, img, avCx-avR, avCy-avR, avR*2, avR*2);
+  else placeholderAvatar(ctx, avCx, avCy, avR, t);
+  ctx.restore();
+  ctx.strokeStyle = t.pink; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.arc(avCx,avCy,avR+2,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = t.mustard; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(avCx,avCy,avR+10,0,Math.PI*2); ctx.stroke();
+
+  const name = document.getElementById('fName').value || 'Your Name';
+  const handle = document.getElementById('fHandle').value;
+  const role = document.getElementById('fRole').value || 'Frontend Engineer';
+  const title = document.getElementById('fTitle').value || 'Goa Growth Hacker';
+
+  ctx.fillStyle = t.cream;
+  ctx.font = `900 50px 'Fraunces', serif`;
+  ctx.fillText(name, W/2, 690);
+
+  if(handle){
+    ctx.fillStyle = t.pink;
+    ctx.font = `600 20px 'IBM Plex Mono', monospace`;
+    ctx.fillText('@'+handle.replace('@',''), W/2, 736);
+  }
+
+  ctx.font = `700 18px 'IBM Plex Mono', monospace`;
+  const roleW = ctx.measureText(role).width + 48;
+  roundedRectPath(ctx, W/2 - roleW/2, 770, roleW, 46, 23);
+  ctx.fillStyle = 'rgba(241,198,59,0.12)'; ctx.fill();
+  ctx.strokeStyle = t.mustard; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle = t.mustard; ctx.fillText(role, W/2, 795);
+
+  ctx.fillStyle = t.cream;
+  ctx.globalAlpha = 0.9;
+  ctx.font = `italic 600 23px 'Fraunces', serif`;
+  ctx.fillText('"' + title + '"', W/2, 870);
+  ctx.globalAlpha = 1;
+}
+
+function render(){
+  if(mode==='pfp') renderPFP(); else renderID();
+}
+render();
+
+// ---- download ----
+btnDownload.addEventListener('click', ()=>{
+  canvas.toBlob(blob=>{
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (mode==='pfp' ? 'hhgoa-pfp-frame' : 'hhgoa-builder-id') + '.png';
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+    
+    // Trigger confetti!
+    if(typeof confetti === 'function') {
+      confetti({
+        particleCount: 150,
+        spread: 80,
+        origin: { y: 0.6 },
+        colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']
+      });
+    }
+  }, 'image/png');
+});
+
+// ---- share ----
+btnShare.addEventListener('click', async ()=>{
+  const caption = mode==='pfp'
+    ? "I'm heading to Hacker House Goa 2026! 🌴☀️ Just minted my official PFP frame.\n\nCan't wait to build, ship, and chill. Let's go! 🚀\n\n#FrameInGoa #HHGoa2026 @247pmstudio @TwoFourtySevenPM"
+    : "I'm heading to Hacker House Goa 2026! 🌴☀️ Just minted my official Builder ID.\n\nCan't wait to build, ship, and chill. Let's go! 🚀\n\n#FrameInGoa #HHGoa2026 @247pmstudio @TwoFourtySevenPM";
+
+  canvas.toBlob(async blob=>{
+    const file = new File([blob], 'hhgoa.png', {type:'image/png'});
+    
+    // 1. Try Native Web Share (works great on Mobile / Safari)
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({files:[file], text: caption});
+        if(typeof confetti === 'function') confetti({particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']});
+        return;
+      }catch(e){ /* fall through */ }
+    }
+    
+    // 2. Desktop Fallback: Copy Image to Clipboard then Open X
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      alert("🌴 Awesome! Your image has been copied to your clipboard. Just hit Paste (Cmd+V / Ctrl+V) in the X/Twitter composer!");
+    } catch(err) {
+      // If clipboard access is denied, trigger a standard download instead
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'hhgoa.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      alert("🌴 We downloaded the image to your device. Be sure to attach it to your post!");
+    }
+    
+    if(typeof confetti === 'function') {
+      confetti({particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']});
+    }
+
+    window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(caption), '_blank');
+  }, 'image/png');
+});
+
+// Load confetti library
+const script = document.createElement('script');
+script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+document.body.appendChild(script);
+
+</script>
+</body>
+</html>

@@ -863,25 +863,31 @@ btnShare.addEventListener('click', async ()=>{
 
   canvas.toBlob(async blob=>{
     const file = new File([blob], 'hhgoa.png', {type:'image/png'});
+    
+    // 1. Try Native Web Share (works great on Mobile / Safari)
     if(navigator.canShare && navigator.canShare({files:[file]})){
       try{
         await navigator.share({files:[file], text: caption});
+        if(typeof confetti === 'function') confetti({particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']});
         return;
-      }catch(e){ /* fall through to X intent */ }
+      }catch(e){ /* fall through */ }
     }
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = 'hhgoa.png'; a.click();
-    setTimeout(()=>URL.revokeObjectURL(url), 4000);
     
-    // Trigger confetti!
+    // 2. Desktop Fallback: Copy Image to Clipboard then Open X
+    try {
+      await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]);
+      alert("🌴 Awesome! Your image has been copied to your clipboard. Just hit Paste (Cmd+V / Ctrl+V) in the X/Twitter composer!");
+    } catch(err) {
+      // If clipboard access is denied, trigger a standard download instead
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url; a.download = 'hhgoa.png'; a.click();
+      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      alert("🌴 We downloaded the image to your device. Be sure to attach it to your post!");
+    }
+    
     if(typeof confetti === 'function') {
-      confetti({
-        particleCount: 150,
-        spread: 80,
-        origin: { y: 0.6 },
-        colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']
-      });
+      confetti({particleCount: 150, spread: 80, origin: { y: 0.6 }, colors: ['#F1C63B', '#E8218C', '#FF63B0', '#1E5A34']});
     }
 
     window.open('https://twitter.com/intent/tweet?text=' + encodeURIComponent(caption), '_blank');
